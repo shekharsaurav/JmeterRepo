@@ -168,7 +168,15 @@ public abstract class HTTPAbstractImpl implements Interruptible, HTTPConstantsIn
     protected int getBandwidth() {
     	return testElement.getBandwidth();
     }
-    /**
+    
+    protected double getMaxError() {
+    	return testElement.getMaxError();
+    }
+    
+    protected int getMinBandwidth() {
+    	return testElement.getMinBandwidth();
+    }
+    /**     * 
      * Determine whether to send a file as the entire body of an
      * entity enclosing request such as POST, PUT or PATCH.
      * 

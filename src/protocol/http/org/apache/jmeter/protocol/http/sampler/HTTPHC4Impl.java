@@ -115,7 +115,7 @@ import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 import org.apache.jmeter.visualizers.RunningSample;
-
+import org.apache.jmeter.visualizers.SamplingStatCalculator;
 
 /**
  * HTTP Sampler using Apache HttpClient 4.x.
@@ -161,13 +161,14 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
     // Scheme used for slow HTTP sockets. Cannot be set as a default, because must be set on an HttpClient instance.
     private Scheme SLOW_HTTP;
     private int bandwidthCPS = getBandwidth();
-    private long maxError = 10;
-    private long curError = 0;
-    private long prevError = 0;
-    private int minBandwidth = 1024;
-    
-    public static final long ERROR = 0;
-    
+    public static int maxCPS; //Initial maximum bandwidth;
+    private static int CPS;   //Variable bandwidth
+    public static boolean RESET = true;		//Reset current bandwidth to maximum bandwidth
+    private double maxError = getMaxError(); 	//max permissible error
+    private static double prevError = 0;	//Error in the previous sample;
+    private int minBandwidth = getMinBandwidth();	//minimum allocated bandwidth
+    public  double error = 0; // Percentage error in the sampler
+      
     
     
     // We always want to override the HTTPS scheme, because we want to trust all certificates and hosts
@@ -217,7 +218,7 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
                 https = new Scheme(HTTPConstants.PROTOCOL_HTTPS, HTTPConstants.DEFAULT_HTTPS_PORT, new HC4TrustAllSSLSocketFactory());
             } catch (GeneralSecurityException e) {
                 log.warn("Failed to initialise HTTPS TrustAll scheme", e);
-            }
+            }	
         }
         HTTPS_SCHEME = https;
         if (localAddress != null){
@@ -226,38 +227,40 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
         
     }
     
-    /*private int countStillActiveThreads() {
-        int reminingThreads= 0;
-        for (AbstractThreadGroup threadGroup : groups) {
-            reminingThreads += threadGroup.getNumberOfThreads();
-        }            
-        return reminingThreads; 
-    }*/
-
+    private void BandwidthThrottling() {
+    	if (bandwidthCPS > 0) {
+        	error = SamplingStatCalculator.ERROR;
+        	log.info(" Error from Http Sampler ---------------------------: " + error);
+        	if (error > maxError && CPS > minBandwidth) {
+        		CPS = CPS/10;
+        		if(CPS < minBandwidth)
+        			CPS *=10;
+        		log.info("Bandwidth decreased to : CPS " + CPS);
+        	}
+        	else if (error < maxError && prevError > maxError) {
+        		CPS = maxCPS;
+        		log.info("Upgrading bandwidth : CPS : " + CPS);
+        	}
+        	prevError = error;
+        	log.info("Setting up HTTP SlowProtocol, bandwidthCPS = "+ maxCPS + " and CPS " + CPS);
+            SLOW_HTTP = new Scheme(HTTPConstants.PROTOCOL_HTTP, HTTPConstants.DEFAULT_HTTP_PORT, new SlowHC4SocketFactory(CPS));
+        } else {
+            SLOW_HTTP = null;
+        }
+    }
+    
     private volatile HttpUriRequest currentRequest; // Accessed from multiple threads
 
     protected HTTPHC4Impl(HTTPSamplerBase testElement) {
         super(testElement);
         // code transferred from static block in this class to class constructor to implement bandwidth throttling
-        if (bandwidthCPS > 0) {
-        	/*prevError = curError;
-        	if (ERROR > maxError && bandwidthCPS > minBandwidth) {
-        		log.warn("current Error rate : " + ERROR);
-        		bandwidthCPS = bandwidthCPS/10;
-        		log.info("Bandwidth decreased to : bandwidthCPS " + bandwidthCPS);
-        		//curError = calc.getErrorPercentage();
-        		log.warn("GOT current Error rate : " + ERROR);
-        	}
-        	else if (curError < maxError && prevError > maxError) {
-        		log.info("Error rate under control : " + curError);
-        		bandwidthCPS = 10*bandwidthCPS;
-        		log.info("Upgrading bandwidth : bandwidthCPS : " + bandwidthCPS);
-        	}*/
-        	log.info("Setting up HTTP SlowProtocol, bandwidthCPS = "+bandwidthCPS);
-            SLOW_HTTP = new Scheme(HTTPConstants.PROTOCOL_HTTP, HTTPConstants.DEFAULT_HTTP_PORT, new SlowHC4SocketFactory(bandwidthCPS));
-        } else {
-            SLOW_HTTP = null;
+        if(RESET) {
+        	CPS = maxCPS;
+        	RESET = false;
+        	log.info("Value of CPS CHANGED");
         }
+        
+        BandwidthThrottling();
     }
 
     @Override

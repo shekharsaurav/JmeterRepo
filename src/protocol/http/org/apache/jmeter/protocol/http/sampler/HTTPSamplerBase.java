@@ -56,6 +56,7 @@ import org.apache.jmeter.protocol.http.control.CookieManager;
 import org.apache.jmeter.protocol.http.control.HeaderManager;
 import org.apache.jmeter.protocol.http.parser.HTMLParseException;
 import org.apache.jmeter.protocol.http.parser.HTMLParser;
+import org.apache.jmeter.protocol.http.sampler.HTTPHC4Impl;
 import org.apache.jmeter.protocol.http.util.ConversionUtils;
 import org.apache.jmeter.protocol.http.util.EncoderCache;
 import org.apache.jmeter.protocol.http.util.HTTPArgument;
@@ -175,9 +176,17 @@ public abstract class HTTPSamplerBase extends AbstractSampler
 
     private static final String CONCURRENT_POOL_DEFAULT = "4"; // default for concurrent pool (do not change)
     
+    //-Bandwidth Throttling
+    
     public static final String BANDWIDTH_CPS = "HTTPSampler.bandwidthCPS"; //Default bandwidth for the connections
     
     public static final String BANDWIDTH_ENABLE = "HTTPSampler.bandwidthEnable"; //Default for enabling bandwidth throttling
+    
+    public static final String DYNAMIC_ENABLE = "HTTPSampler.dynamicEnable"; //Enable Dynamic Throttling
+    
+    public static final String MIN_BANDWIDTH = "HTTPSampler.minBandwidth"; // mininum permissible bandwidth
+    
+    public static final String MAX_ERROR = "HTTPSampler.maxError"; //maximum permissible error in bandwidth throttling
 
     //- JMX names
 
@@ -850,9 +859,26 @@ public abstract class HTTPSamplerBase extends AbstractSampler
     
     
     public int getBandwidth() {
+    	HTTPHC4Impl.maxCPS = getPropertyAsInt(BANDWIDTH_CPS, 0);
+    	log.info("In the Sampler Base");
     	return getPropertyAsInt(BANDWIDTH_CPS, 0);
     }
     
+    public void setMaxError(String value) {
+    	setProperty(MAX_ERROR, value, "");
+    }
+    
+    public double getMaxError() {
+    	return getPropertyAsDouble(MAX_ERROR);
+    }
+    
+    public void setMinBandwidth(String value) {
+    	setProperty(MIN_BANDWIDTH, value, "");
+    }
+    
+    public int getMinBandwidth() {
+    	return getPropertyAsInt(MIN_BANDWIDTH, 0);
+    }
 
     /**
      * Populates the provided HTTPSampleResult with details from the Exception.

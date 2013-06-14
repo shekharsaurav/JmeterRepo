@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jorphan.math.StatCalculatorLong;
 
+
 /**
  * Aggegate sample data container. Just instantiate a new instance of this
  * class, and then call {@link #addSample(SampleResult)} a few times, and pull
@@ -39,6 +40,8 @@ public class SamplingStatCalculator {
     private String label;
 
     private volatile Sample currentSample;
+    
+    public static double ERROR;
 
     public SamplingStatCalculator(){ // Only for use by test code
         this("");
@@ -152,7 +155,11 @@ public class SamplingStatCalculator {
             setStartTime(res);
             eCount = getCurrentSample().getErrorCount();
             eCount += res.getErrorCount();
-            System.out.println("Error Count : " + eCount);
+            //ERROR += eCount / calculator.getCount();
+            //System.out.println("Error in Sampling ++++++++: " + eCount);
+            //System.out.println("Count " + calculator.getCount());
+            ERROR = (double) eCount / (double) calculator.getCount() * 100;
+            System.out.println("Error Percentage " + ERROR);
             endTime = getEndTime(res);
             long howLongRunning = endTime - firstTime;
             throughput = ((double) calculator.getCount() / (double) howLongRunning) * 1000.0;

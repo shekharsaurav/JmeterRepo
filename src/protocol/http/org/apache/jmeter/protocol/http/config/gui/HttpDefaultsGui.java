@@ -34,6 +34,7 @@ import org.apache.jmeter.config.ConfigTestElement;
 import org.apache.jmeter.config.gui.AbstractConfigGui;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.protocol.http.sampler.HTTPHC4Impl;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.testelement.TestElement;
@@ -52,9 +53,15 @@ public class HttpDefaultsGui extends AbstractConfigGui {
     
     private JCheckBox bandwidthThrottle;
     
+    private JCheckBox dynamicThrottle;
+    
     private JTextField concurrentPool; 
     
     private JTextField bandwidth;
+    
+    private JTextField maxError;
+    
+    private JTextField minBandwidth;
 
     private UrlConfigGui urlConfig;
 
@@ -126,13 +133,31 @@ public class HttpDefaultsGui extends AbstractConfigGui {
         else {
         	config.removeProperty(HTTPSamplerBase.BANDWIDTH_ENABLE);
         }
-        if (!StringUtils.isEmpty(bandwidth.getText())) {
+        if (!StringUtils.isEmpty(bandwidth.getText()) && bandwidthThrottle.isSelected()) {
         	config.setProperty(new StringProperty(HTTPSamplerBase.BANDWIDTH_CPS, bandwidth.getText()));
+        	HTTPHC4Impl.RESET = true;
         }
         else {
         	config.setProperty(new StringProperty(HTTPSamplerBase.BANDWIDTH_CPS, "0"));
         }
-        	
+        if (dynamicThrottle.isSelected()) {
+        	config.setProperty(new BooleanProperty(HTTPSamplerBase.DYNAMIC_ENABLE, true));
+        }
+        else {
+        	config.removeProperty(HTTPSamplerBase.DYNAMIC_ENABLE);
+        }
+        if(!StringUtils.isEmpty(maxError.getText()) && dynamicThrottle.isSelected()) {
+        	config.setProperty(new StringProperty(HTTPSamplerBase.MAX_ERROR, maxError.getText()));
+        }
+        else {
+        	config.setProperty(new StringProperty(HTTPSamplerBase.MAX_ERROR, "100"));
+        }
+        if(!StringUtils.isEmpty(minBandwidth.getText()) && dynamicThrottle.isSelected()) {
+        	config.setProperty(new StringProperty(HTTPSamplerBase.MIN_BANDWIDTH, minBandwidth.getText()));
+        }
+        else {
+        	config.setProperty(new StringProperty(HTTPSamplerBase.MIN_BANDWIDTH, "0"));
+        }
     }
 
     /**
@@ -148,6 +173,9 @@ public class HttpDefaultsGui extends AbstractConfigGui {
         embeddedRE.setText(""); // $NON-NLS-1$
         bandwidthThrottle.setSelected(false);
         bandwidth.setText("");
+        dynamicThrottle.setSelected(false);
+        minBandwidth.setText("");
+        maxError.setText("");
     }
 
     @Override
@@ -159,7 +187,19 @@ public class HttpDefaultsGui extends AbstractConfigGui {
         concurrentPool.setText(((AbstractTestElement) el).getPropertyAsString(HTTPSamplerBase.CONCURRENT_POOL));
         embeddedRE.setText(((AbstractTestElement) el).getPropertyAsString(HTTPSamplerBase.EMBEDDED_URL_RE, ""));
         bandwidthThrottle.setSelected(((AbstractTestElement) el).getPropertyAsBoolean(HTTPSamplerBase.BANDWIDTH_ENABLE));
-        bandwidth.setText(((AbstractTestElement) el).getPropertyAsString(HTTPSamplerBase.BANDWIDTH_CPS));
+        if(bandwidthThrottle.isSelected())
+        	bandwidth.setText(((AbstractTestElement) el).getPropertyAsString(HTTPSamplerBase.BANDWIDTH_CPS));
+        else
+        	bandwidth.setEnabled(false);
+        dynamicThrottle.setSelected(((AbstractTestElement) el).getPropertyAsBoolean(HTTPSamplerBase.DYNAMIC_ENABLE));
+        if(dynamicThrottle.isSelected()) {
+        	minBandwidth.setText(((AbstractTestElement) el).getPropertyAsString(HTTPSamplerBase.MIN_BANDWIDTH));
+        	maxError.setText(((AbstractTestElement) el).getPropertyAsString(HTTPSamplerBase.MAX_ERROR));
+        }        	
+        else {
+        	minBandwidth.setEnabled(false);
+        	maxError.setEnabled(false);
+        }
     }
 
     private void init() {
@@ -209,20 +249,13 @@ public class HttpDefaultsGui extends AbstractConfigGui {
         final JPanel bandwidthPanel = new VerticalPanel();
         bandwidthPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), JMeterUtils
                 .getResString("bandwidth_panel")));
-        final JPanel bandwidthCheckBoxPanel = new HorizontalPanel();
-        bandwidthThrottle = new JCheckBox(JMeterUtils.getResString("bandwidth_throttling"));
-        bandwidthCheckBoxPanel.add(bandwidthThrottle);
 
         final JPanel cpsPanel = getCpsPanel();
-        bandwidthThrottle.addItemListener(new ItemListener() {
-        	@Override
-        	public void itemStateChanged(final ItemEvent e) {
-        		if (bandwidthThrottle.isSelected() && e.getStateChange() == ItemEvent.SELECTED) { bandwidth.setEnabled(true); }
-        		else { bandwidth.setEnabled(false); }
-        	}
-        });
-        bandwidthCheckBoxPanel.add(cpsPanel);
-        bandwidthPanel.add(bandwidthCheckBoxPanel);
+        
+        //Dynamic Bandwidth Throttling
+        final JPanel dynamicThrottlePanel = getDynamicThrottlePanel();
+        bandwidthPanel.add(cpsPanel);
+        bandwidthPanel.add(dynamicThrottlePanel);
         optionalTasksPanel.add(bandwidthPanel);
         //optionalTasksPanel.add(bandwidthCheckBoxPanel);
         
@@ -258,17 +291,64 @@ public class HttpDefaultsGui extends AbstractConfigGui {
     }
     
     public JPanel getCpsPanel() {
+        final JPanel bandwidthTPanel = new HorizontalPanel();
+        bandwidthThrottle = new JCheckBox(JMeterUtils.getResString("bandwidth_throttling"));
+        bandwidthThrottle.addItemListener(new ItemListener() {
+        	@Override
+        	public void itemStateChanged(final ItemEvent e) {
+        		if (bandwidthThrottle.isSelected() && e.getStateChange() == ItemEvent.SELECTED) { bandwidth.setEnabled(true); }
+        		else { bandwidth.setEnabled(false); }
+        	}
+        });
+        bandwidthTPanel.add(bandwidthThrottle, BorderLayout.NORTH);
         bandwidth = new JTextField(20);
         bandwidth.setEnabled(false);
         JLabel label = new JLabel(JMeterUtils.getResString("bandwidth_cps")); // $NON-NLS-1$
-        label.setLabelFor(bandwidth);
-
-        JPanel panel = new JPanel(new BorderLayout(5, 0));
-        panel.add(label, BorderLayout.CENTER);
-        panel.add(bandwidth, BorderLayout.AFTER_LAST_LINE);
-        return panel;
+        label.setLabelFor(bandwidth);        
+        bandwidthTPanel.add(label, BorderLayout.WEST);
+        bandwidthTPanel.add(bandwidth, BorderLayout.CENTER);
+        return bandwidthTPanel;
     }
     
+    public JPanel getDynamicThrottlePanel() {
+    	JPanel dynamicPanel = new HorizontalPanel();
+        dynamicThrottle = new JCheckBox(JMeterUtils.getResString("dynamic_throttle"));
+        dynamicPanel.add(dynamicThrottle, BorderLayout.NORTH);
+        dynamicThrottle.addItemListener(new ItemListener() {
+        	@Override
+        	public void itemStateChanged(final ItemEvent e) {
+        		if (dynamicThrottle.isSelected() && e.getStateChange() == ItemEvent.SELECTED) {
+        			bandwidthThrottle.setSelected(true);
+        			bandwidth.setEnabled(true);
+        			maxError.setEnabled(true);
+        			minBandwidth.setEnabled(true);
+        		}
+        		else {
+        			maxError.setEnabled(false);
+        			minBandwidth.setEnabled(false);
+        		}
+        	}
+        });
+        maxError = new JTextField(20);
+        maxError.setEnabled(false);
+        JLabel errorLabel = new JLabel(JMeterUtils.getResString("dynamic_max_error"));
+        errorLabel.setLabelFor(maxError);
+
+        JPanel minBandPanel = new VerticalPanel();
+        minBandwidth = new JTextField(20);
+        minBandwidth.setEnabled(false);
+        JLabel bandwidthLabel = new JLabel(JMeterUtils.getResString("dynamic_min_bandwidth"));
+        bandwidthLabel.setLabelFor(minBandwidth);
+        minBandPanel.add(bandwidthLabel, BorderLayout.WEST);
+        minBandPanel.add(minBandwidth, BorderLayout.EAST);
+        dynamicPanel.add(minBandPanel, BorderLayout.WEST);//, BorderLayout.BEFORE_LINE_BEGINS);
+        JPanel maxErrorPanel = new VerticalPanel();
+        maxErrorPanel.add(errorLabel, BorderLayout.WEST);
+        maxErrorPanel.add(maxError, BorderLayout.CENTER);
+        dynamicPanel.add(maxErrorPanel, BorderLayout.AFTER_LAST_LINE);
+        return dynamicPanel;
+        
+    }
     public void setBandwidth(String value) {
     	bandwidth.setText(value);
     }

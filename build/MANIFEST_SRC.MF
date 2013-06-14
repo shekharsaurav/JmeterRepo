@@ -7,5 +7,5 @@ Specification-Title:  Apache JMeter
 Specification-Vendor:  Apache Software Foundation
 Implementation-Vendor:  Apache Software Foundation
 Implementation-Vendor-Id:  org.apache
-Implementation-Version: 2.9-SNAPSHOT.20130614
+Implementation-Version: 2.9-SNAPSHOT.20130615
 
