@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+sudo ifconfig eth0:$1 $2 up
+
+exit 0

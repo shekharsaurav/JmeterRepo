@@ -67,20 +67,7 @@ public class SmtpConfigGui extends AbstractConfigGui{
 		 setLayout(new BorderLayout(0, 5));
 		 setBorder(makeBorder());
 	     add(makeTitlePanel(), BorderLayout.NORTH);
-	     GridBagConstraints gridBagConstraintsMain;
-	     GridBagConstraints gridBagConstraints;
-
-	        gridBagConstraintsMain = new GridBagConstraints();
-	        gridBagConstraintsMain.fill = GridBagConstraints.HORIZONTAL;
-	        gridBagConstraintsMain.anchor = GridBagConstraints.WEST;
-	        gridBagConstraintsMain.weightx = 0.5;
-
-	        gridBagConstraints = new GridBagConstraints();
-	        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
-	        gridBagConstraints.fill = GridBagConstraints.NONE;
-	        gridBagConstraints.anchor = GridBagConstraints.WEST;
-	        gridBagConstraints.weightx = 0.5;
-	     // MAIN PANEL
+	    	     // MAIN PANEL
 	     VerticalPanel mainPanel = new VerticalPanel();
 	     JPanel serverPanel = new HorizontalPanel();
 	     serverPanel.setBorder(BorderFactory.createTitledBorder(
@@ -92,26 +79,7 @@ public class SmtpConfigGui extends AbstractConfigGui{
 	     mailSettingsPanel.setBorder(BorderFactory.createTitledBorder(
 	                BorderFactory.createEtchedBorder(),
 	                JMeterUtils.getResString("smtp_mail_settings")));
-	    /* gridBagConstraints.gridx = 0;
-	     gridBagConstraints.gridy = 0;
-	     mailSettingsPanel.add(setAddressTo(), gridBagConstraints);*/
 	     mailSettingsPanel.add(setAddressTo(), BorderLayout.CENTER);
-	     /*gridBagConstraints.gridx = 0;
-	     gridBagConstraints.gridy = 1;
-	     mailSettingsPanel.add(setAddressFromTo(), gridBagConstraints);*/
-	     //mailSettingsPanel.add(setAddressFromTo(), BorderLayout.AFTER_LAST_LINE);
-	     /*gridBagConstraints.gridx = 0;
-	     gridBagConstraints.gridy = 2;
-	     mailSettingsPanel.add(setAddressToCC(), gridBagConstraints);*/
-	     //mailSettingsPanel.add(setAddressToCC(), BorderLayout.CENTER);
-	     /*gridBagConstraints.gridx = 0;
-	     gridBagConstraints.gridy = 3;
-	     mailSettingsPanel.add(setAddressToBCC(), gridBagConstraints);*/
-	     //mailSettingsPanel.add(setAddressToBCC(), BorderLayout.AFTER_LAST_LINE);
-	     /*gridBagConstraints.gridx = 0;
-	     gridBagConstraints.gridy = 4;
-	     mailSettingsPanel.add(setAddressReplyTo(), gridBagConstraints);*/
-	     //mailSettingsPanel.add(setAddressReplyTo(), BorderLayout.CENTER);
 	     mainPanel.add(serverPanel);
 	     mainPanel.add(mailSettingsPanel);
 	     

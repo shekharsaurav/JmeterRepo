@@ -17,7 +17,7 @@
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">10</stringProp>
+        <stringProp name="ThreadGroup.num_threads">1000</stringProp>
         <stringProp name="ThreadGroup.ramp_time">0</stringProp>
         <longProp name="ThreadGroup.start_time">1371030815000</longProp>
         <longProp name="ThreadGroup.end_time">1371030815000</longProp>
@@ -33,15 +33,15 @@
           <stringProp name="HTTPSampler.domain">localhost</stringProp>
           <stringProp name="HTTPSampler.port">7001</stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout">20000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">22000</stringProp>
           <stringProp name="HTTPSampler.protocol"></stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path"></stringProp>
           <stringProp name="HTTPSampler.concurrentPool">4</stringProp>
           <boolProp name="HTTPSampler.bandwidthEnable">true</boolProp>
-          <stringProp name="HTTPSampler.bandwidthCPS">1234567</stringProp>
+          <stringProp name="HTTPSampler.bandwidthCPS">1024000</stringProp>
           <boolProp name="HTTPSampler.dynamicEnable">true</boolProp>
-          <stringProp name="HTTPSampler.maxError">30</stringProp>
+          <stringProp name="HTTPSampler.maxError">7</stringProp>
           <stringProp name="HTTPSampler.minBandwidth">1024</stringProp>
         </ConfigTestElement>
         <hashTree/>
@@ -471,7 +471,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/mybatis-jpetstore-6.0.1/actions/Cart.action</stringProp>
+          <stringProp name="HTTPSampler.path">/mybatis-jpetstore-6.0.1/actions/Catalog.action?viewCategory=&amp;categoryId=FISH</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -525,7 +525,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/mybatis-jpetstore-6.0.1/actions/Order.action</stringProp>
+          <stringProp name="HTTPSampler.path">/mybatis-jpetstore-6.0.1/actions/Catalog.action?viewProduct=&amp;productId=FI-FW-02</stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -669,7 +669,7 @@
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
-          <stringProp name="HTTPSampler.path">/mybatis-jpetstore-6.0.1/actions/Order.action</stringProp>
+          <stringProp name="HTTPSampler.path">/mybatis-jpetstore-6.0.1/actions/Cart.action?addItemToCart=&amp;workingItemId=EST-20</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>

@@ -73,7 +73,7 @@ public class Random extends AbstractFunction {
                 vars.put(varTrim, randString);
             }
         }
-
+        System.out.println("Hello!!!!!!");
         return randString;
 
     }

@@ -212,6 +212,8 @@
   <property name="src.jms" value="src/protocol/jms"/>
   <property name="src.native" value="src/protocol/native"/>
   <property name="src.report" value="src/reports"/>
+  <!-- PLUGINS -->
+  <property name="src.plugins" value="src/JMeterPlugins"/>
 
   <!-- Where the documentation sources live -->
   <property name="src.docs" value="xdocs"/>
@@ -239,6 +241,8 @@
     <pathelement location="${src.jms}"/>
     <pathelement location="${src.native}"/>
     <pathelement location="${src.report}"/>
+    <!-- PLUGINS -->
+    <pathelement location="${src.plugins}"/>
   </path>
 
   <!-- Temporary build directories: where the .class live -->
@@ -263,6 +267,8 @@
   <property name="build.report" value="build/reports"/>
   <property name="build.test" value="build/test"/>
   <property name="build.res" value="build/res"/>
+  <!-- PLUGINS -->
+  <property name="build.plugins" value="build/JMeterPlugins"/>
 
   <!-- Path prefix to allow Anakia to find stylesheets if running under Eclipse -->
   <!--
@@ -620,6 +626,8 @@
         <pathelement location="${build.monitor.model}"/>
         <pathelement location="${build.report}"/>
         <pathelement location="${build.tcp}"/>
+        <!-- PLUGINS -->
+        <pathelement location="${build.plugins}"/>
         <!-- Also include compiled jars to allow running tests without rebuilding source -->
         <fileset dir="${dest.jar}" includes="*.jar"/>
         <path refid="classpath"/>
@@ -652,6 +660,20 @@
       </classpath>
     </javac>
   </target>
+<!-- PLUGINS -->
+  <target name="compile-plugins" depends="compile-jorphan,compile-core" description="Compile components specific to JMeter Plugins.">
+    <mkdir dir="${build.plugins}"/>
+    <javac srcdir="${src.plugins}" destdir="${build.plugins}" source="${src.java.version}" optimize="${optimize}" debug="on" target="${target.java.version}"
+           includeAntRuntime="${includeAntRuntime}" deprecation="${deprecation}" encoding="${encoding}">
+      <include name="**/*.java"/>
+      <classpath>
+        <pathelement location="${build.jorphan}"/>
+        <pathelement location="${build.core}"/>
+        <path refid="classpath"/>
+      </classpath>
+    </javac>
+  </target>
+
 
   <target name="compile-ldap" depends="compile-jorphan,compile-core"
     description="Compile components specific to LDAP sampling.">
@@ -737,7 +759,7 @@
       </classpath>
     </javac>
   </target>
-
+<!-- PLUGINS -->
   <target name="compile-protocols" depends="compile-http,compile-ftp,compile-jdbc,compile-java,compile-ldap,compile-mail,compile-tcp" description="Compile all protocol-specific components."/>
 
   <target name="compile-examples" depends="compile-jorphan,compile-core" description="Compile example components.">
@@ -1008,6 +1030,16 @@ run JMeter unless all the JMeter jars are added.
         fullpath="META-INF/LICENSE" />
       <fileset dir="${build.java}" includes="**/*.class" />
       <fileset dir="${src.java}" includes="**/*.properties" />
+    </jar>
+    <!-- PLUGINS -->
+    <!-- JMeterPlugins -->
+    <jar jarfile="${dest.jar}/JMeterPlugins.jar" manifest="${build.dir}/MANIFEST_BIN.MF">
+      <zipfileset file="${resources.meta-inf}/default.notice"
+        fullpath="META-INF/NOTICE" />
+      <zipfileset file="${resources.meta-inf}/default.license"
+        fullpath="META-INF/LICENSE" />
+      <fileset dir="${build.plugins}" includes="**/*.class" />
+      <fileset dir="${src.plugins}" includes="**/*.properties" />
     </jar>
 
     <!-- BeanShell Client -->

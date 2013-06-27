@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -116,6 +117,7 @@ import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 import org.apache.jmeter.visualizers.RunningSample;
 import org.apache.jmeter.visualizers.SamplingStatCalculator;
+import org.apache.jmeter.protocol.http.config.IpGeneration;
 
 /**
  * HTTP Sampler using Apache HttpClient 4.x.
@@ -169,7 +171,8 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
     private int minBandwidth = getMinBandwidth();	//minimum allocated bandwidth
     public  double error = 0; // Percentage error in the sampler
       
-    
+    private static Iterator itr = IpGeneration.ADDRESSES.iterator();
+   
     
     // We always want to override the HTTPS scheme, because we want to trust all certificates and hosts
     private static final Scheme HTTPS_SCHEME;
@@ -230,7 +233,7 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
     private void BandwidthThrottling() {
     	if (bandwidthCPS > 0) {
         	error = SamplingStatCalculator.ERROR;
-        	log.info(" Error from Http Sampler ---------------------------: " + error);
+        	log.info(" Error from Http Sampler ------------------------------------------------: " + error);
         	if (error > maxError && CPS > minBandwidth) {
         		CPS = CPS/10;
         		if(CPS < minBandwidth)
@@ -242,7 +245,7 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
         		log.info("Upgrading bandwidth : CPS : " + CPS);
         	}
         	prevError = error;
-        	log.info("Setting up HTTP SlowProtocol, bandwidthCPS = "+ maxCPS + " and CPS " + CPS);
+        	log.info("Setting up HTTP SlowProtocol @ CPS---------------------------------------: " + CPS);
             SLOW_HTTP = new Scheme(HTTPConstants.PROTOCOL_HTTP, HTTPConstants.DEFAULT_HTTP_PORT, new SlowHC4SocketFactory(CPS));
         } else {
             SLOW_HTTP = null;
@@ -598,7 +601,19 @@ public class HTTPHC4Impl extends HTTPHCAbstractImpl {
     
     // Set up the local address if one exists
     final String ipSource = getIpSource();
-    if (ipSource.length() > 0) {// Use special field ip source address (for pseudo 'ip spoofing')
+    
+    
+    if(itr.hasNext()) {
+    	String address = itr.next().toString();
+    	log.info("Using IP SPOOFING ----------------------------------------->" + address);
+    	InetAddress inetAddr = InetAddress.getByName(address);
+    	requestParams.setParameter(ConnRoutePNames.LOCAL_ADDRESS, inetAddr);
+    	System.out.println("Using Ip : " + address +"\t" +inetAddr.getHostAddress());
+    	if(!itr.hasNext())
+    		itr = IpGeneration.ADDRESSES.iterator();
+    }
+    else if (ipSource.length() > 0) {// Use special field ip source address (for pseudo 'ip spoofing')
+    	log.info("Using IP : "+ ipSource);
         InetAddress inetAddr = InetAddress.getByName(ipSource);
         requestParams.setParameter(ConnRoutePNames.LOCAL_ADDRESS, inetAddr);
     } else if (localAddress != null){
